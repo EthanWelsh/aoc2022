@@ -37,3 +37,4 @@ main = do
 
 readInt :: String -> Int
 readInt = read
+
