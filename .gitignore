@@ -1,0 +1,6 @@
+.stack-work/
+.vscode/
+*~
+stack.yaml.lock
+dist-newstyle/*
+.gitattributes
