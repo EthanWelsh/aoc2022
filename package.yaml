@@ -1,22 +1,12 @@
-name:                aoc-template
+name:                aoc2022
 version:             2022.0
-github:              "samcoy3/advent-of-code-template"
-license:             BSD3
-author:              "Sam Coy"
-maintainer:          "samcoy3@gmail.com"
-copyright:           "2022 Sam Coy"
+github:              "EthanWelsh/aoc2022"
+author:              "Ethan Welsh"
 
 extra-source-files:
 - README.md
 
-# Metadata used when publishing your package
-# synopsis:            Short description of your package
-# category:            Web
-
-# To avoid duplicated efforts in documentation and dealing with the
-# complications of embedding Haddock markup inside cabal files, it is
-# common to point users to the README.md file.
-description:         A template for Advent of Code projects in Haskell
+description:         Ethan's solutions to Advent of Code 2022
 
 dependencies:
 - base >= 4.7 && < 5
@@ -66,4 +56,4 @@ executables:
     - GADTs
     - GHC2021
     dependencies:
-    - aoc-template
+    - aoc2022
