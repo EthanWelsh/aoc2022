@@ -21,19 +21,34 @@ runDay = R.runDay inputParser partA partB
 
 ------------ PARSER ------------
 inputParser :: Parser Input
-inputParser = error "Not implemented yet!"
+inputParser = many1 anyChar
 
 ------------ TYPES ------------
-type Input = Void
+type Input = String
 
-type OutputA = Void
+type OutputA = Int
 
-type OutputB = Void
+type OutputB = Int
 
 ------------ PART A ------------
+
+groupsOf :: Int -> [a] -> [[a]]
+groupsOf _ [] = []
+groupsOf size xs = (Data.List.take size xs) : groupsOf size (drop 1 xs)
+
+noDupes :: [Char] -> Bool
+noDupes xs = (length xs) == length (nub xs)
+
+findIndexOfFirstUniqueGroup :: Int -> String -> Int
+findIndexOfFirstUniqueGroup groupSize input = let
+    groups = groupsOf groupSize input                        :: [String]
+    uniqueGroup = fromJust $ find noDupes groups             :: String
+    groupIndex = fromJust $ findIndex (==uniqueGroup) groups :: Int
+    in groupIndex + length uniqueGroup
+
 partA :: Input -> OutputA
-partA = error "Not implemented yet!"
+partA input = findIndexOfFirstUniqueGroup 4 input
 
 ------------ PART B ------------
 partB :: Input -> OutputB
-partB = error "Not implemented yet!"
+partB input = findIndexOfFirstUniqueGroup 14 input
