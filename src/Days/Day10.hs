@@ -13,13 +13,13 @@ import qualified Util.Util as U
 import Control.Monad (void)
 import Control.Applicative ((<|>))
 import Data.Functor (($>))
-import qualified Program.RunDay as R (runDay, Day)
+import qualified Program.RunDay as R (runDay, runDayWithIO, Day)
 import Data.Attoparsec.Text
 import Data.Void
 {- ORMOLU_ENABLE -}
 
 runDay :: R.Day
-runDay = R.runDay inputParser partA partB
+runDay = R.runDayWithIO inputParser partA partB
 
 ------------ PARSER ------------
 addParser :: Parser Operation
@@ -60,13 +60,13 @@ stateHelper states@(x:_) (Addx y) = ((x+y):x:states)
 getSignalStrengths :: [Int] -> [Int]
 getSignalStrengths xs = map (uncurry (*)) (zip [1..] xs)
 
-partA :: Input -> OutputA
+partA :: Input -> IO ()
 partA input = let 
     stateEachCycle = getStateEachCycle input
     signalStrengths = getSignalStrengths stateEachCycle
     interestingCycles = [20, 60, 100, 140, 180, 220]
     cycles = map (\index -> signalStrengths !! (index - 1)) interestingCycles
-    in sum $ cycles
+    in print $ sum $ cycles
 
 ------------ PART B ------------
 spritePosition :: Int -> [Int]
@@ -88,8 +88,7 @@ breakIntoGroupsOf groupSize xs = let
     splits = splitAt groupSize xs
     in [fst splits] ++ (breakIntoGroupsOf groupSize (snd splits))
 
-
-partB :: Input -> OutputB
+partB :: Input -> IO ()
 partB input = let
     stateEachCycle = getStateEachCycle input
-    in intercalate "\n" (breakIntoGroupsOf 40 (getCrtRows stateEachCycle))
+    in putStrLn $ intercalate "\n" (breakIntoGroupsOf 40 (getCrtRows stateEachCycle))
