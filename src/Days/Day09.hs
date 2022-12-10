@@ -10,6 +10,10 @@ import qualified Data.Set as Set
 import Data.Vector (Vector)
 import qualified Data.Vector as Vec
 import qualified Util.Util as U
+import Control.Monad (void)
+import Control.Applicative ((<|>))
+import Data.Functor (($>))
+
 
 import qualified Program.RunDay as R (runDay, Day)
 import Data.Attoparsec.Text
@@ -20,20 +24,65 @@ runDay :: R.Day
 runDay = R.runDay inputParser partA partB
 
 ------------ PARSER ------------
+dirParser :: Char -> Direction -> Parser [Direction]
+dirParser c d = do
+    void $ char c
+    void $ char ' '
+    count <- decimal
+    return $ replicate count d
+
+dirsParser :: Parser [Direction]
+dirsParser = (dirParser 'U' North) <|> (dirParser 'D' South) <|> (dirParser 'L' West) <|> (dirParser 'R' East)
+
 inputParser :: Parser Input
-inputParser = error "Not implemented yet!"
+inputParser = do
+    dirs <- dirsParser `sepBy` endOfLine
+    return $ concat dirs
 
 ------------ TYPES ------------
-type Input = Void
+data Direction = North | South | East | West deriving (Eq, Show)
 
-type OutputA = Void
+type Point = (Int, Int)
 
-type OutputB = Void
+type Input = [Direction]
+
+type OutputA = String
+
+type OutputB = String
 
 ------------ PART A ------------
+
+movePoint :: Point -> Direction -> Point
+movePoint (r, c) North = (r - 1, c)
+movePoint (r, c) South = (r + 1, c)
+movePoint (r, c) East = (r, c + 1)
+movePoint (r, c) West = (r, c - 1)
+
+getPath :: Point -> [Direction] -> [Point]
+getPath _ [] = []
+getPath p (d:ds) = let
+    newP = movePoint p d
+    in newP : getPath newP ds
+
+areTouching :: Point -> Point -> Bool
+areTouching (a, b) (x, y) = if abs (a - x) <= 1 && abs (b - y) <= 1 then True else False
+
+getTailLocs :: [Point] -> [Point]
+getTailLocs = reverse . foldl update []
+  where
+    update [] v = [v]
+    update pos@((x', y'):_) (x, y)
+      | areTouching (x', y') (x, y) = pos
+      | otherwise = (x' + signum (x-x'), y' + signum (y-y')):pos
+
 partA :: Input -> OutputA
-partA = error "Not implemented yet!"
+partA input = let
+    headLocs = getPath (0, 0) input
+    in show $ length . nub . flip (!!) 1 . iterate getTailLocs $ headLocs
 
 ------------ PART B ------------
+
 partB :: Input -> OutputB
-partB = error "Not implemented yet!"
+partB input = let
+    headLocs = getPath (0, 0) input
+    in show $ length . nub . flip (!!) 9 . iterate getTailLocs $ headLocs
