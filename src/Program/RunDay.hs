@@ -18,7 +18,7 @@ data Verbosity = Quiet | Timings | Verbose deriving (Eq, Show, Ord)
 type Day = Verbosity -> String -> IO (Maybe Double, Maybe Double)
 
 runDay :: (Show a, Show b, Show i) => Parser i -> (i -> a) -> (i -> b) -> Program.RunDay.Day
-runDay inputParser partA partB verbosity inputFile = runDayWithIO inputParser (print) (print) verbosity inputFile
+runDay inputParser partA partB verbosity inputFile = runDayWithIO inputParser (print . partA) (print . partB) verbosity inputFile
 
 runDayWithIO :: (Show i) => Parser i -> (i -> IO ()) -> (i -> IO ()) -> Program.RunDay.Day
 runDayWithIO inputParser partA partB verbosity inputFile = do
