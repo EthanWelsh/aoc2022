@@ -51,6 +51,7 @@ operationParser = do
         Left num    -> if opr == '+' then (\old -> old + num) else (\old -> old * num)
         Right "old" -> if opr == '+' then (\old -> old + old) else (\old -> old * old))
 
+divisibleBy :: Int -> Int -> Bool
 divisibleBy n x = x `rem` n == 0
 
 testParser :: Parser Int
