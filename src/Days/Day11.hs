@@ -110,9 +110,9 @@ instance Show Monkey where
 
 type Input = [Monkey]
 
-type OutputA = String
+type OutputA = Int
 
-type OutputB = String
+type OutputB = Int
 
 ------------ PART A ------------
 
@@ -200,7 +200,7 @@ playA rounds = do
     return $ score
 
 partA :: Input -> OutputA
-partA input = show $ evalState (playA 20) (Vec.fromList input)
+partA input = evalState (playA 20) (Vec.fromList input)
 
 ------------ PART B ------------
 
@@ -224,4 +224,4 @@ playB rounds = do
     return $ score
 
 partB :: Input -> OutputB
-partB input = show $ evalState (playB 10000) (Vec.fromList input)
+partB input = evalState (playB 10000) (Vec.fromList input)
