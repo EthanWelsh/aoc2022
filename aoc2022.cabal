@@ -65,6 +65,7 @@ library
       GHC2021
   build-depends:
       ansi-terminal
+    , astar
     , attoparsec
     , base >=4.7 && <5
     , containers
@@ -74,6 +75,7 @@ library
     , parser-combinators
     , text
     , time
+    , unordered-containers
     , vector
   default-language: Haskell2010
 
@@ -95,6 +97,7 @@ executable aoc-template-exe
   build-depends:
       ansi-terminal
     , aoc2022
+    , astar
     , attoparsec
     , base >=4.7 && <5
     , containers
@@ -104,5 +107,6 @@ executable aoc-template-exe
     , parser-combinators
     , text
     , time
+    , unordered-containers
     , vector
   default-language: Haskell2010
