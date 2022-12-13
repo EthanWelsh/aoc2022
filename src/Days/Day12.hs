@@ -114,7 +114,9 @@ allStartPoints maze = filter (\p -> 'a' == (getNormalized maze p)) (getAllPoints
 
 searchFromMultiplePoints :: Maze -> [Point] -> Maybe [Point]
 searchFromMultiplePoints maze starts = let
-    -- aStar only supports searching from a single start point, but we can easily add that capability using a fake start point
+    -- aStar only supports searching from a single start point, but we can easily add 
+    -- that capability using a fake start point, and marking all real start points as
+    -- neighbors of that point.
     fakeStartPoint = (-123, -123)
     neighborOrStartPoint point = if (point == fakeStartPoint) then (HashSet.fromList starts) else (neighborPoints maze point)
     in aStar neighborOrStartPoint distanceBetweenNeighbors (heuristicDistanceToGoal maze) (isGoal maze) fakeStartPoint
