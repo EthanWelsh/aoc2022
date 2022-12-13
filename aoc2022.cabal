@@ -65,7 +65,6 @@ library
       GHC2021
   build-depends:
       ansi-terminal
-    , astar
     , attoparsec
     , base >=4.7 && <5
     , containers
@@ -73,6 +72,7 @@ library
     , mtl
     , optparse-applicative
     , parser-combinators
+    , search-algorithms
     , text
     , time
     , unordered-containers
@@ -97,7 +97,6 @@ executable aoc-template-exe
   build-depends:
       ansi-terminal
     , aoc2022
-    , astar
     , attoparsec
     , base >=4.7 && <5
     , containers
@@ -105,6 +104,7 @@ executable aoc-template-exe
     , mtl
     , optparse-applicative
     , parser-combinators
+    , search-algorithms
     , text
     , time
     , unordered-containers

@@ -10,7 +10,7 @@ description:         Ethan's solutions to Advent of Code 2022
 
 dependencies:
 - base >= 4.7 && < 5
-- astar
+- search-algorithms
 - time
 - unordered-containers
 - ansi-terminal

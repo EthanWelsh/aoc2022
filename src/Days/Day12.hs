@@ -10,12 +10,12 @@ import qualified Data.Set as Set
 import Data.Vector (Vector)
 import qualified Data.Vector as Vec
 import qualified Util.Util as U
-import Data.Graph.AStar
 import Data.Char
 import qualified Data.HashSet as HashSet
 import qualified Program.RunDay as R (runDay, Day)
 import Data.Attoparsec.Text
 import Data.Void
+import Algorithm.Search
 {- ORMOLU_ENABLE -}
 
 runDay :: R.Day
@@ -102,17 +102,17 @@ isGoal maze p = p == (endPosition maze)
 distanceBetweenNeighbors :: Point -> Point -> Int
 distanceBetweenNeighbors _ _ = 1
 
-search :: Maze -> Maybe [Point]
+search :: Maze -> Maybe (Int, [Point])
 search maze = aStar (neighborPoints maze) distanceBetweenNeighbors (heuristicDistanceToGoal maze) (isGoal maze) (startPosition maze)
 
 partA :: Input -> OutputA
-partA maze = show $ length $ fromJust $ search maze
+partA maze = show $ fst $ fromJust $ search maze
 
 ------------ PART B ------------
 allStartPoints :: Maze -> [Point]
 allStartPoints maze = filter (\p -> 'a' == (getNormalized maze p)) (getAllPoints maze)
 
-searchFromMultiplePoints :: Maze -> [Point] -> Maybe [Point]
+searchFromMultiplePoints :: Maze -> [Point] -> Maybe (Int, [Point])
 searchFromMultiplePoints maze starts = let
     -- aStar only supports searching from a single start point, but we can easily add 
     -- that capability using a fake start point, and marking all real start points as
@@ -124,4 +124,4 @@ searchFromMultiplePoints maze starts = let
 partB :: Input -> OutputB
 partB maze = let
     shortestPath = searchFromMultiplePoints maze (allStartPoints maze)
-    in show $ (length $ fromJust $ shortestPath) - 1
+    in show $ fst (fromJust $ shortestPath) - 1
