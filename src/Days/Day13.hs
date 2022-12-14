@@ -10,30 +10,48 @@ import qualified Data.Set as Set
 import Data.Vector (Vector)
 import qualified Data.Vector as Vec
 import qualified Util.Util as U
-
-import qualified Program.RunDay as R (runDay, Day)
-import Data.Attoparsec.Text
+import Control.Monad (void)
+import Control.Applicative ((<|>))
+import Data.Functor (($>))
+import Text.Megaparsec 
+import Text.Megaparsec.Char
+import Text.Megaparsec.Char.Lexer
+import qualified Program.RunDay as R (runDayWithParser, megaparsecParser, Day)
 import Data.Void
 {- ORMOLU_ENABLE -}
 
+type Parser = Parsec Void String
+
 runDay :: R.Day
-runDay = R.runDay inputParser partA partB
+runDay = R.runDayWithParser (R.megaparsecParser inputParser) partA partB
 
 ------------ PARSER ------------
+
+pairs :: [a] -> [(a, a)]
+pairs [] = []
+pairs (x:y:ys) = (x, y) : (pairs ys)
+
+packetParser :: Parser Packet
+packetParser = choice [Item <$> decimal, List <$> between (single '[') (single ']') (packetParser `sepBy` single ',')] 
+
 inputParser :: Parser Input
-inputParser = error "Not implemented yet!"
+inputParser = packetParser `sepEndBy` some eol
 
 ------------ TYPES ------------
-type Input = Void
 
-type OutputA = Void
+data Packet = Item Int | List [Packet] deriving (Show, Eq)
 
-type OutputB = Void
+type Input = [Packet]
+
+type OutputA = String
+
+type OutputB = String
 
 ------------ PART A ------------
+
 partA :: Input -> OutputA
-partA = error "Not implemented yet!"
+partA input = "part a"
 
 ------------ PART B ------------
 partB :: Input -> OutputB
-partB = error "Not implemented yet!"
+partB input = "part b"
