@@ -39,7 +39,13 @@ inputParser = packetParser `sepEndBy` some eol
 
 ------------ TYPES ------------
 
-data Packet = Item Int | List [Packet] deriving (Show, Eq)
+data Packet = Item Int | List [Packet] deriving (Eq)
+
+instance Show Packet where
+  show (Item x) = show x
+  show (List ps) = let
+    packets = map show ps
+    in "[" ++ (intercalate "," packets) ++ "]"
 
 type Input = [Packet]
 
@@ -47,11 +53,35 @@ type OutputA = String
 
 type OutputB = String
 
+data Validity = Valid | Invalid | Unknown deriving (Show, Eq)
+
 ------------ PART A ------------
 
+instance Ord Packet where
+    compare (Item l) (Item r) = compare l r
+    compare (List []) (List []) = EQ
+    compare (List []) (List (r:rs)) = LT
+    compare (List (l:ls)) (List []) = GT
+    compare (List l) (Item r) = compare (List l) (List [(Item r)])
+    compare (Item l) (List r) = compare (List [(Item l)]) (List r)
+    compare (List (l:ls)) (List (r:rs)) = let
+        headValidity = compare l r
+        in if headValidity == EQ then compare (List ls) (List rs) else headValidity
+
+isValid :: (Packet, Packet) -> Bool
+isValid (l, r) = l < r
+
 partA :: Input -> OutputA
-partA input = "part a"
+partA input = let
+    packetPairs = pairs input
+    pairsWithIndex = zip [1..] packetPairs
+    onlyValid = filter (\(i, pair) -> isValid pair) pairsWithIndex
+    in show $ sum $ map fst onlyValid
 
 ------------ PART B ------------
+
 partB :: Input -> OutputB
-partB input = "part b"
+partB input = let
+    extras = [List[List[Item 2]], List[List[Item 6]]]
+    packets = sort $ (extras ++) $ input
+    in show $ product $ map (+1) $ findIndices (`elem` extras) packets
