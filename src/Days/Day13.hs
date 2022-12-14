@@ -62,8 +62,8 @@ instance Ord Packet where
     compare (List []) (List []) = EQ
     compare (List []) (List (r:rs)) = LT
     compare (List (l:ls)) (List []) = GT
-    compare (List l) (Item r) = compare (List l) (List [(Item r)])
-    compare (Item l) (List r) = compare (List [(Item l)]) (List r)
+    compare (List l) r@(Item _) = compare (List l) (List [r])
+    compare l@(Item _) (List r) = compare (List [l]) (List r)
     compare (List (l:ls)) (List (r:rs)) = let
         headValidity = compare l r
         in if headValidity == EQ then compare (List ls) (List rs) else headValidity
