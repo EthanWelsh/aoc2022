@@ -12,6 +12,7 @@ dependencies:
 - base >= 4.7 && < 5
 - search-algorithms
 - time
+- megaparsec
 - unordered-containers
 - ansi-terminal
 - directory

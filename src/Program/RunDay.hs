@@ -1,6 +1,6 @@
 {-# LANGUAGE TypeApplications #-}
 
-module Program.RunDay (runDay, runDayWithIO, Day, Verbosity (Quiet, Timings, Verbose)) where
+module Program.RunDay (runDay, runDayWithIO, runDayWithParser, runDayWithParserAndIO, attoparsecParser, megaparsecParser, Day, Verbosity (Quiet, Timings, Verbose)) where
 
 import Control.Exception (SomeException, catch)
 import Control.Monad.Except
@@ -12,16 +12,31 @@ import Program.Color
 import System.Console.ANSI
 import System.Directory (doesFileExist)
 import Text.Printf
+import qualified Text.Megaparsec as MP
 
 data Verbosity = Quiet | Timings | Verbose deriving (Eq, Show, Ord)
 
 type Day = Verbosity -> String -> IO (Maybe Double, Maybe Double)
 
+attoparsecParser :: Parser a -> String -> Either String a
+attoparsecParser inputParser fileContents = parseOnly inputParser . pack $ fileContents
+
+megaparsecParser :: MP.ShowErrorComponent e => MP.Parsec e String a -> String -> Either String a
+megaparsecParser inputParser fileContents = case MP.parse inputParser "" fileContents of
+  Left bundle -> Left (MP.errorBundlePretty bundle)
+  Right x -> Right x
+
 runDay :: (Show a, Show b, Show i) => Parser i -> (i -> a) -> (i -> b) -> Program.RunDay.Day
-runDay inputParser partA partB verbosity inputFile = runDayWithIO inputParser (print . partA) (print . partB) verbosity inputFile
+runDay inputParser partA partB verbosity inputFile = runDayWithParserAndIO (attoparsecParser inputParser) (print . partA) (print . partB) verbosity inputFile
+
+runDayWithParser :: (Show a, Show b, Show i) => (String -> Either String i) -> (i -> a) -> (i -> b) -> Program.RunDay.Day
+runDayWithParser inputParser partA partB verbosity inputFile = runDayWithParserAndIO inputParser (print . partA) (print . partB) verbosity inputFile
 
 runDayWithIO :: (Show i) => Parser i -> (i -> IO ()) -> (i -> IO ()) -> Program.RunDay.Day
-runDayWithIO inputParser partA partB verbosity inputFile = do
+runDayWithIO inputParser partA partB verbosity inputFile = runDayWithParserAndIO (attoparsecParser inputParser) partA partB verbosity inputFile
+
+runDayWithParserAndIO :: (Show i) => (String -> Either String i) -> (i -> IO ()) -> (i -> IO ()) -> Program.RunDay.Day
+runDayWithParserAndIO inputParser partA partB verbosity inputFile = do
   input <- runExceptT $ do
     inputFileExists <- liftIO $ doesFileExist inputFile
     fileContents <-
@@ -34,7 +49,7 @@ runDayWithIO inputParser partA partB verbosity inputFile = do
                 "I was expecting it to be at",
                 inputFile
               ]
-    case parseOnly inputParser . pack $ fileContents of
+    case (inputParser fileContents) of
       Left e -> throwError $ "Parser failed to read input. Error:\n" ++ e
       Right i -> do
         when (verbosity == Verbose) $ do
