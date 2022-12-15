@@ -16,6 +16,7 @@ import qualified Program.RunDay as R (runDay, Day)
 import Data.Attoparsec.Text
 import Data.Void
 import Algorithm.Search
+import Util.Matrix
 {- ORMOLU_ENABLE -}
 
 runDay :: R.Day
@@ -26,9 +27,7 @@ inputParser :: Parser Input
 inputParser = many1 (notChar '\n') `sepBy` endOfLine
 
 ------------ TYPES ------------
-type Maze = [String]
-
-type Point = (Int, Int)
+type Maze = (Matrix Char)
 
 type Input = Maze
 
@@ -37,20 +36,15 @@ type OutputA = String
 type OutputB = String
 
 ------------ PART A ------------
-getHeight :: Maze -> Int
-getHeight maze = length maze
 
-getWidth :: Maze -> Int
-getWidth maze = length (maze !! 0)
+allowedStep :: Maze -> Point -> Point -> Bool
+allowedStep maze currP nextP = let
+    curr = getNormalized maze currP
+    next = getNormalized maze nextP
+    in (nextChar curr) >= next
 
-getAllPoints :: Maze -> [Point]
-getAllPoints maze = let
-    height = (getHeight maze) - 1
-    width = (getWidth maze) - 1
-    in  [(r, c) | r <- [0..height], c <- [0..width]]
-
-get :: Maze -> Point -> Char
-get maze (r, c) = (maze !! r) !! c
+neighborPoints :: Maze -> Point -> HashSet.HashSet Point
+neighborPoints maze p = HashSet.filter (allowedStep maze p) (cardinalPoints maze p)
 
 findMatching :: Maze -> (Point -> Bool) -> Point
 findMatching maze p = fromJust $ find p (getAllPoints maze)
@@ -61,13 +55,6 @@ startPosition maze = findMatching maze (\p -> 'S' == (get maze p))
 endPosition :: Maze -> Point
 endPosition maze = findMatching maze (\p -> 'E' == (get maze p))
 
-pointInBounds :: Maze -> Point -> Bool
-pointInBounds maze (r, c) = let
-    height = getHeight maze
-    width = getWidth maze
-    inBetween test start end = if test >= start && test < end then True else False 
-    in inBetween r 0 height && inBetween c 0 width
-
 nextChar :: Char -> Char
 nextChar 'z' = 'z'
 nextChar c = chr (ord c + 1)
@@ -77,19 +64,6 @@ getNormalized maze p = case (get maze p) of
     'S' -> 'a'
     'E' -> 'z'
     c -> c
-
-allowedStep :: Maze -> Point -> Point -> Bool
-allowedStep maze currP nextP = let
-    curr = getNormalized maze currP
-    next = getNormalized maze nextP
-    in (nextChar curr) >= next
-
-neighborPoints :: Maze -> Point -> HashSet.HashSet Point
-neighborPoints maze (r, c) = let
-    points = [(r + 1, c), (r - 1, c), (r, c + 1), (r, c - 1)]
-    inBounds = filter (pointInBounds maze) points
-    allowed = filter (allowedStep maze (r, c)) inBounds 
-    in HashSet.fromList allowed
 
 heuristicDistanceToGoal :: Maze -> Point -> Int
 heuristicDistanceToGoal maze (r, c) = let

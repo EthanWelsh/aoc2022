@@ -13,7 +13,7 @@ import qualified Util.Util as U
 import Control.Monad (void)
 import Control.Applicative ((<|>))
 import Data.Functor (($>))
-
+import Util.Matrix
 
 import qualified Program.RunDay as R (runDay, Day)
 import Data.Attoparsec.Text
@@ -24,14 +24,14 @@ runDay :: R.Day
 runDay = R.runDay inputParser partA partB
 
 ------------ PARSER ------------
-dirParser :: Char -> Direction -> Parser [Direction]
+dirParser :: Char -> CardinalDirection -> Parser [CardinalDirection]
 dirParser c d = do
     void $ char c
     void $ char ' '
     count <- decimal
     return $ replicate count d
 
-dirsParser :: Parser [Direction]
+dirsParser :: Parser [CardinalDirection]
 dirsParser = (dirParser 'U' North) <|> (dirParser 'D' South) <|> (dirParser 'L' West) <|> (dirParser 'R' East)
 
 inputParser :: Parser Input
@@ -40,29 +40,14 @@ inputParser = do
     return $ concat dirs
 
 ------------ TYPES ------------
-data Direction = North | South | East | West deriving (Eq, Show)
 
-type Point = (Int, Int)
-
-type Input = [Direction]
+type Input = [CardinalDirection]
 
 type OutputA = String
 
 type OutputB = String
 
 ------------ PART A ------------
-
-movePoint :: Point -> Direction -> Point
-movePoint (r, c) North = (r - 1, c)
-movePoint (r, c) South = (r + 1, c)
-movePoint (r, c) East = (r, c + 1)
-movePoint (r, c) West = (r, c - 1)
-
-getPath :: Point -> [Direction] -> [Point]
-getPath _ [] = []
-getPath p (d:ds) = let
-    newP = movePoint p d
-    in newP : getPath newP ds
 
 areTouching :: Point -> Point -> Bool
 areTouching (a, b) (x, y) = if abs (a - x) <= 1 && abs (b - y) <= 1 then True else False

@@ -82,13 +82,7 @@ crtHelper row (crtIndex, x) = let
     charToAdd = if crtIndex `elem` (spritePosition x) then '#' else '.'
     in row ++ [charToAdd] 
 
-breakIntoGroupsOf :: Int -> [Char] -> [[Char]]
-breakIntoGroupsOf _ [] = []
-breakIntoGroupsOf groupSize xs = let
-    splits = splitAt groupSize xs
-    in [fst splits] ++ (breakIntoGroupsOf groupSize (snd splits))
-
 partB :: Input -> IO ()
 partB input = let
     stateEachCycle = getStateEachCycle input
-    in putStrLn $ intercalate "\n" (breakIntoGroupsOf 40 (getCrtRows stateEachCycle))
+    in putStrLn $ intercalate "\n" (U.chunksOf 40 (getCrtRows stateEachCycle))

@@ -86,22 +86,11 @@ dropSandForever :: Blocks -> (Point -> Blocks -> Bool) -> [(Blocks, Bool)]
 dropSandForever blocks stopCondition = iterate helper (blocks, False)
   where helper (blocks, _) = dropSand blocks stopCondition
 
-laggedPairs :: [a] -> [(a, a)]
-laggedPairs [] = []
-laggedPairs [x] = []
-laggedPairs (x:y:ys) = (x, y) : laggedPairs (y:ys)
-
 arrowToSegment :: Arrow -> [(Point, Point)]
-arrowToSegment arrow = laggedPairs arrow
-
-range :: Int -> Int -> [Int]
-range start end
-    | start < end  = [start..end]
-    | start > end  = [start, start - 1 .. end]
-    | start == end = repeat start
+arrowToSegment arrow = U.laggedPairs arrow
 
 segmentBlocks :: (Point, Point) -> Blocks
-segmentBlocks ((a, b), (c, d)) = HashSet.fromList $ zip (range a c) (range b d)
+segmentBlocks ((a, b), (c, d)) = HashSet.fromList $ zip (U.range a c) (U.range b d)
 
 unionAll :: [Blocks] -> Blocks
 unionAll blocks = HashSet.unions blocks
@@ -124,7 +113,7 @@ addFloor :: Blocks -> Blocks
 addFloor blocks = let 
     (x, y) = lowestPoint blocks
     floorY = y + 2
-    floorPoints = zip (range (-1000) 1000) (repeat floorY) -- this is practically infinite
+    floorPoints = zip (U.range (-1000) 1000) (repeat floorY) -- this is practically infinite
     in HashSet.union blocks (HashSet.fromList floorPoints)
 
 startBlocked :: Point -> Blocks -> Bool

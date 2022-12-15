@@ -10,6 +10,8 @@ import qualified Data.Set as Set
 import Data.Vector (Vector)
 import qualified Data.Vector as Vec
 import qualified Util.Util as U
+import Util.Matrix
+import qualified Util.Parsers as P
 
 import qualified Program.RunDay as R (runDay, Day)
 import Data.Attoparsec.Text
@@ -21,12 +23,10 @@ runDay = R.runDay inputParser partA partB
 
 ------------ PARSER ------------
 inputParser :: Parser Input
-inputParser = (many1 (notChar '\n')) `sepBy` endOfLine
+inputParser = P.linesParser
 
 ------------ TYPES ------------
-type Point = (Int, Int)
-
-type Trees = [String]
+type Trees = Matrix Char
 
 type Input = Trees
 
@@ -41,15 +41,6 @@ range start end
     | start < end  = [start..end]
     | start > end  = [start, start - 1 .. end]
     | start == end = []
-
-get :: Trees -> Point -> Char
-get ts (r, c) = (ts !! r) !! c
-
-getHeight :: Trees -> Int
-getHeight ts = length ts
-
-getWidth :: Trees -> Int
-getWidth ts = length (ts !! 0)
 
 getLinesOfSite :: Trees -> Point -> [[Point]]
 getLinesOfSite ts (r, c) = let
@@ -71,12 +62,6 @@ isVisible ts p = let
     linesOfSiteValues = map (map (get ts)) linesOfSitePoints  :: [[Char]]
     isDecreasing = map isStrictlyDecreasing linesOfSiteValues :: [Bool]
     in or isDecreasing
-
-getAllPoints :: Trees -> [Point]
-getAllPoints ts = let
-    height = (getHeight ts) - 1
-    width = (getWidth ts) - 1
-    in  [(r, c) | r <- [0..height], c <- [0..width]]
 
 countWhere :: (a -> Bool) -> [a] -> Int
 countWhere pred xs = length $ filter pred xs

@@ -48,6 +48,7 @@ library
       Days.Day25
       Program.Color
       Program.RunDay
+      Util.Matrix
       Util.Pair
       Util.Parsers
       Util.Util

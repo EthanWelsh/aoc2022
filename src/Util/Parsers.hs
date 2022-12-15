@@ -26,6 +26,9 @@ coordinateParser mapper start = coordinateParser' start start
         ]
     addToMap mapper x y c = Map.alter (const (mapper c)) (x, y)
 
+linesParser :: Parser [String]
+linesParser = (many1 (notChar '\n')) `sepBy` endOfLine
+
 ------------ COMBINATORS ------------
 
 -- Takes a parser and a separator. Parses one instance of the parser before the separator and one afterwards, returning the parsed values as a pair.

@@ -73,3 +73,14 @@ mapBoundingBox m =
     (maximum . fmap fst . Map.keys $ m)
     (minimum . fmap snd . Map.keys $ m)
     (maximum . fmap snd . Map.keys $ m)
+
+laggedPairs :: [a] -> [(a, a)]
+laggedPairs [] = []
+laggedPairs [x] = []
+laggedPairs (x:y:ys) = (x, y) : laggedPairs (y:ys)
+
+range :: Int -> Int -> [Int]
+range start end
+    | start < end  = [start..end]
+    | start > end  = [start, start - 1 .. end]
+    | start == end = repeat start
