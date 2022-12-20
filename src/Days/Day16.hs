@@ -12,7 +12,10 @@ import qualified Data.Vector as Vec
 import qualified Util.Util as U
 import Control.Monad (void)
 import Control.Applicative ((<|>))
+import Algorithm.Search
 import Data.Functor (($>))
+import Data.Maybe
+import Data.Function
 import qualified Program.RunDay as R (runDayWithIO, Day)
 import Data.Attoparsec.Text
 import Data.Void
@@ -56,6 +59,8 @@ type Input = Graph
 
 type Graph = Map String Valve
 
+type Costs = Map String (Map String Int)
+
 data Valve = Valve { valvePressure  :: Int
                    , valveNeighbors :: Set String } deriving (Eq, Show, Ord)
 
@@ -74,66 +79,68 @@ type OutputB = Int
 startState :: State
 startState = State { location = "AA", minute = 0, pressurePerMinute = 0, totalPressure = 0, openValves = Set.empty }
 
-getValve :: Graph -> String -> Valve
-getValve graph valve = fromJust $ Map.lookup valve graph
+helpfulValves :: Graph -> [String]
+helpfulValves graph = map fst $ filter (\(name, valve) -> (valvePressure valve) > 0 ) (Map.assocs graph)
 
-isAlreadyOpen :: Graph -> State -> String -> Bool
-isAlreadyOpen graph state v = let
-    valve = getValve graph v
-    valveOpen = v `elem` (openValves state)
-    pressureZero = (valvePressure valve) == 0
-    in valveOpen || pressureZero
+pathCost :: Graph -> String -> String -> Int
+pathCost graph origin destination = fst $ fromJust $ dijkstra neighbors cost isGoal origin
+    where
+        neighbors v = valveNeighbors (graph Map.! v)
+        cost _ _ = 1
+        isGoal v = v == destination
 
-isTimeUp :: State -> Bool
-isTimeUp state = (minute state) > 30
+mapify :: (Ord a, Ord b) => [(a, b, c)] -> Map a (Map b c)
+mapify xs = foldl (\m (o, d, c) -> Map.insertWith (Map.union) o (Map.singleton d c) m) Map.empty xs
 
-openValve :: Graph -> State -> Set State
-openValve graph state = let
-    valve = location state
-    (Valve valvePressure _) = getValve graph valve
-    newMinute = (minute state) + 1
-    newPressurePerMinute = (pressurePerMinute state) + valvePressure
-    newTotalPressure = (totalPressure state) + (pressurePerMinute state)
-    newOpenValves = Set.insert valve (openValves state)
-    alreadyOpen = isAlreadyOpen graph state valve
-    timeUp = isTimeUp state
-    in if alreadyOpen || timeUp then Set.empty else Set.singleton $ state { 
-        minute = newMinute, 
-        pressurePerMinute = newPressurePerMinute,
+getCosts :: Graph -> Costs
+getCosts graph = let
+    helpful = helpfulValves graph
+    allPaths = [(o, d) | o <- ("AA":helpful), d <- helpful]
+    pathsWithCost = map (\(o, d) -> (o, d, pathCost graph o d)) allPaths :: [(String, String, Int)]
+    in mapify pathsWithCost
+
+costFromTo :: Costs -> String -> String -> Int
+costFromTo costs origin destination = (costs Map.! origin) Map.! destination
+
+visitDestination :: Graph -> Costs -> State -> String -> Maybe State
+visitDestination graph costs state destination = let
+    origin = location state
+    costToTravel = costFromTo costs origin destination
+    costToOpenValve = 1
+    timeElapsed = costToTravel + costToOpenValve
+    newMinute = (minute state) + timeElapsed
+    newTotalPressure = (totalPressure state) + (timeElapsed * (pressurePerMinute state))
+    newPressurePerMinute = (pressurePerMinute state) + (valvePressure $ graph Map.! destination)
+    newOpenValves = Set.insert destination (openValves state)
+    timeUp = (minute state) > 30
+    in if timeUp then Nothing else Just $ state { 
+        location = destination, 
+        minute = newMinute,
         totalPressure = newTotalPressure,
+        pressurePerMinute = newPressurePerMinute,
         openValves = newOpenValves }
 
-visitNeighbor :: Graph -> State -> String -> Set State
-visitNeighbor graph state newLocation = let
-    newMinute = (minute state) + 1
-    newTotalPressure = (totalPressure state) + (pressurePerMinute state)
-    timeUp = isTimeUp state
-    in if timeUp then Set.empty else Set.singleton $ state { 
-        location = newLocation, 
-        minute = newMinute,
-        totalPressure = newTotalPressure }
+visitAll :: Graph -> Costs -> State -> State
+visitAll graph costs state = let 
+    origin = location state                                                             :: String
+    unopened = filter (not . (`elem` openValves state)) (Map.keys (costs Map.! origin)) :: [String]
+    children = catMaybes $ map (visitDestination graph costs state) unopened            :: [State]
+    bestForEachChild = map (visitAll graph costs) children                              :: [State]
+    bestOverall = maximumBy (compare `on` (totalPressure)) bestForEachChild             :: State
+    timeRemaining = 30 - (minute state)
+    pressureIfWaitTillEnd = (totalPressure state) + (timeRemaining * (pressurePerMinute state))
+    in if null children 
+        then state { minute = 30, totalPressure = pressureIfWaitTillEnd } 
+        else bestOverall
 
-visitNeighbors :: Graph -> State -> Set State
-visitNeighbors graph state = let
-    valve = location state
-    (Valve _ ns) = getValve graph valve
-    neighborStates = Set.map (visitNeighbor graph state) ns
-    in Set.unions neighborStates
-
-search :: Graph -> State -> Set State
-search graph state = let
-    min = minute state
-    openOrNot = Set.unions [Set.singleton state, openValve graph state]
-    nextStates = Set.unions $ Set.map (visitNeighbors graph) openOrNot :: Set State
-    in if (minute state) == 30 then Set.singleton state else Set.unions $ Set.map (search graph) nextStates 
-
+-- 2055 too low
 partA :: Input -> IO ()
 partA graph = do
-    let allStates = search graph startState
-    let pressures = Set.map (totalPressure) allStates
-    print $ maximum pressures
+    let costs = getCosts graph
+    print $ helpfulValves graph
+    print $ visitAll graph costs startState
 
 ------------ PART B ------------
 partB :: Input -> IO ()
 partB graph = do
-    print $ Map.keys graph
+    print "hello"
