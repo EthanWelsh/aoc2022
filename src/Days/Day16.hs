@@ -80,7 +80,7 @@ startState :: State
 startState = State { location = "AA", minute = 0, pressurePerMinute = 0, totalPressure = 0, openValves = Set.empty }
 
 helpfulValves :: Graph -> [String]
-helpfulValves graph = map fst $ filter (\(name, valve) -> (valvePressure valve) > 0 ) (Map.assocs graph)
+helpfulValves graph = map fst $ filter (\(name, valve) -> valvePressure valve > 0 ) (Map.assocs graph)
 
 pathCost :: Graph -> String -> String -> Int
 pathCost graph origin destination = fst $ fromJust $ dijkstra neighbors cost isGoal origin
@@ -90,12 +90,12 @@ pathCost graph origin destination = fst $ fromJust $ dijkstra neighbors cost isG
         isGoal v = v == destination
 
 mapify :: (Ord a, Ord b) => [(a, b, c)] -> Map a (Map b c)
-mapify xs = foldl (\m (o, d, c) -> Map.insertWith (Map.union) o (Map.singleton d c) m) Map.empty xs
+mapify = foldl (\ m (o, d, c) -> Map.insertWith Map.union o (Map.singleton d c) m) Map.empty
 
 getCosts :: Graph -> Costs
 getCosts graph = let
     helpful = helpfulValves graph
-    allPaths = [(o, d) | o <- ("AA":helpful), d <- helpful, o /= d]
+    allPaths = [(o, d) | o <- "AA":helpful, d <- helpful, o /= d]
     pathsWithCost = map (\(o, d) -> (o, d, pathCost graph o d)) allPaths :: [(String, String, Int)]
     in mapify pathsWithCost
 
@@ -108,9 +108,9 @@ visitDestination graph costs state destination = let
     costToTravel = costFromTo costs origin destination
     costToOpenValve = 1
     timeElapsed = costToTravel + costToOpenValve
-    newMinute = (minute state) + timeElapsed
-    newTotalPressure = (totalPressure state) + (timeElapsed * (pressurePerMinute state))
-    newPressurePerMinute = (pressurePerMinute state) + (valvePressure $ graph Map.! destination)
+    newMinute = minute state + timeElapsed
+    newTotalPressure = totalPressure state + (timeElapsed * pressurePerMinute state)
+    newPressurePerMinute = pressurePerMinute state + valvePressure (graph Map.! destination)
     newOpenValves = Set.insert destination (openValves state)
     timeUp = newMinute > 30
     in if timeUp then Nothing else Just $ state { 
@@ -122,22 +122,20 @@ visitDestination graph costs state destination = let
 
 totalPressureAtEnd :: State -> Int
 totalPressureAtEnd state = let
-    timeRemaining = 30 - (minute state)
-    in (totalPressure state) + (timeRemaining * (pressurePerMinute state))
+    timeRemaining = 30 - minute state
+    in totalPressure state + (timeRemaining * pressurePerMinute state)
 
 visitAll :: Graph -> Costs -> State -> State
 visitAll graph costs state = let 
     origin = location state                                                             :: String
     unopened = filter (not . (`elem` openValves state)) (Map.keys (costs Map.! origin)) :: [String]
-    children = catMaybes $ map (visitDestination graph costs state) unopened            :: [State]
+    children = mapMaybe (visitDestination graph costs state) unopened                   :: [State]
     bestForEachChild = map (visitAll graph costs) children                              :: [State]
-    bestOverall = maximumBy (compare `on` (totalPressure)) bestForEachChild             :: State
+    bestOverall = maximumBy (compare `on` totalPressure) bestForEachChild               :: State
     in if null children 
         then state { minute = 30, totalPressure = totalPressureAtEnd state } 
         else bestOverall
 
--- 2055 too low
--- 2185 too high
 partA :: Input -> IO ()
 partA graph = do
     let costs = getCosts graph
