@@ -93,7 +93,7 @@ mapify = foldl' (\m (o, d, c) -> Map.insertWith Map.union o (Map.singleton d c) 
 getCosts :: Graph -> Costs
 getCosts graph = let
     helpful = helpfulValves graph
-    allPaths = [(o, d) | o <- "AA":helpful, d <- helpful]
+    allPaths = [(o, d) | o <- "AA":helpful, d <- helpful, o /= d]
     pathsWithCost = map (\(o, d) -> (o, d, pathCost graph o d)) allPaths :: [(String, String, Int)]
     in mapify pathsWithCost
 
@@ -118,6 +118,11 @@ visitDestination graph costs state destination = let
         pressurePerMinute = newPressurePerMinute,
         openValves = newOpenValves }
 
+totalPressureAtEnd :: State -> Int
+totalPressureAtEnd state = let
+    timeRemaining = 30 - minute state
+    in totalPressure state + (timeRemaining * pressurePerMinute state)
+
 visitAll :: Graph -> Costs -> State -> State
 visitAll graph costs state = let
     origin = location state                                                        :: String
@@ -131,7 +136,6 @@ visitAll graph costs state = let
         then state { minute = 30, totalPressure = pressureIfWaitTillEnd }
         else bestOverall
 
--- 2055 too low
 partA :: Input -> IO ()
 partA graph = do
     let costs = getCosts graph
