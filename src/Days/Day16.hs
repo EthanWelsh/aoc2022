@@ -95,7 +95,7 @@ mapify xs = foldl (\m (o, d, c) -> Map.insertWith (Map.union) o (Map.singleton d
 getCosts :: Graph -> Costs
 getCosts graph = let
     helpful = helpfulValves graph
-    allPaths = [(o, d) | o <- ("AA":helpful), d <- helpful]
+    allPaths = [(o, d) | o <- ("AA":helpful), d <- helpful, o /= d]
     pathsWithCost = map (\(o, d) -> (o, d, pathCost graph o d)) allPaths :: [(String, String, Int)]
     in mapify pathsWithCost
 
@@ -112,13 +112,18 @@ visitDestination graph costs state destination = let
     newTotalPressure = (totalPressure state) + (timeElapsed * (pressurePerMinute state))
     newPressurePerMinute = (pressurePerMinute state) + (valvePressure $ graph Map.! destination)
     newOpenValves = Set.insert destination (openValves state)
-    timeUp = (minute state) > 30
+    timeUp = newMinute > 30
     in if timeUp then Nothing else Just $ state { 
         location = destination, 
         minute = newMinute,
         totalPressure = newTotalPressure,
         pressurePerMinute = newPressurePerMinute,
         openValves = newOpenValves }
+
+totalPressureAtEnd :: State -> Int
+totalPressureAtEnd state = let
+    timeRemaining = 30 - (minute state)
+    in (totalPressure state) + (timeRemaining * (pressurePerMinute state))
 
 visitAll :: Graph -> Costs -> State -> State
 visitAll graph costs state = let 
@@ -127,13 +132,12 @@ visitAll graph costs state = let
     children = catMaybes $ map (visitDestination graph costs state) unopened            :: [State]
     bestForEachChild = map (visitAll graph costs) children                              :: [State]
     bestOverall = maximumBy (compare `on` (totalPressure)) bestForEachChild             :: State
-    timeRemaining = 30 - (minute state)
-    pressureIfWaitTillEnd = (totalPressure state) + (timeRemaining * (pressurePerMinute state))
     in if null children 
-        then state { minute = 30, totalPressure = pressureIfWaitTillEnd } 
+        then state { minute = 30, totalPressure = totalPressureAtEnd state } 
         else bestOverall
 
 -- 2055 too low
+-- 2185 too high
 partA :: Input -> IO ()
 partA graph = do
     let costs = getCosts graph
@@ -143,4 +147,4 @@ partA graph = do
 ------------ PART B ------------
 partB :: Input -> IO ()
 partB graph = do
-    print "hello"
+    print $ getCosts graph
