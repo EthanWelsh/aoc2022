@@ -59,6 +59,7 @@ library
   default-extensions:
       LambdaCase
       MultiWayIf
+      TemplateHaskell
       RecordWildCards
       OverloadedRecordDot
       OverloadedStrings
@@ -70,12 +71,14 @@ library
     , base >=4.7 && <5
     , containers
     , directory
+    , lens
     , megaparsec
     , mtl
     , optparse-applicative
     , parser-combinators
     , range
     , search-algorithms
+    , template-haskell
     , text
     , time
     , unordered-containers
@@ -91,6 +94,7 @@ executable aoc-template-exe
   default-extensions:
       LambdaCase
       MultiWayIf
+      TemplateHaskell
       RecordWildCards
       OverloadedRecordDot
       OverloadedStrings
@@ -104,12 +108,14 @@ executable aoc-template-exe
     , base >=4.7 && <5
     , containers
     , directory
+    , lens
     , megaparsec
     , mtl
     , optparse-applicative
     , parser-combinators
     , range
     , search-algorithms
+    , template-haskell
     , text
     , time
     , unordered-containers

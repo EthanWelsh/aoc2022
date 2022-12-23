@@ -13,7 +13,9 @@ dependencies:
 - search-algorithms
 - time
 - megaparsec
+- lens
 - range
+- template-haskell
 - unordered-containers
 - ansi-terminal
 - directory
@@ -30,6 +32,7 @@ library:
   default-extensions:
     - LambdaCase
     - MultiWayIf
+    - TemplateHaskell
     - RecordWildCards
     - OverloadedRecordDot
     - OverloadedStrings
@@ -54,6 +57,7 @@ executables:
     default-extensions:
     - LambdaCase
     - MultiWayIf
+    - TemplateHaskell
     - RecordWildCards
     - OverloadedRecordDot
     - OverloadedStrings

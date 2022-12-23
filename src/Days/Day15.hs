@@ -100,9 +100,9 @@ projectOutwards target (s@(r1, c1), b@(r2, c2)) = let
 
 impossibleBeaconLocationsOnRow :: [(Point, Point)] -> Int -> [Range Int]
 impossibleBeaconLocationsOnRow input targetRow = let 
-    colsCoveredOnTargetRow = catMaybes $ map (projectOutwards targetRow) input      :: [Range Int]
+    colsCoveredOnTargetRow = mapMaybe (projectOutwards targetRow) input             :: [Range Int]
     joined = joinRanges colsCoveredOnTargetRow                                      :: [Range Int]
-    beacons = map (getBeacon) input                                                 :: [Point]
+    beacons = map getBeacon input                                                 :: [Point]
     beaconsOnTargetRow = filter ( (==targetRow) . getRow) beacons                   :: [Point]
     beaconColsOnTargetRow = map (SingletonRange . getCol) beaconsOnTargetRow        :: [Range Int]
     rowsWithNoBeacons = difference joined beaconColsOnTargetRow                     :: [Range Int]
@@ -128,13 +128,13 @@ possibleBeaconLocationsOnRow input inBounds targetRow = let
     impossibleRanges = impossibleBeaconLocationsOnRow input targetRow
     possibleRanges = difference [inBounds] impossibleRanges
     possibleCols = concatMap rangeToList possibleRanges
-    in zip (repeat targetRow) possibleCols 
+    in map (targetRow,) possibleCols 
 
 possibleLocations :: [(Point, Point)] -> Int -> Int -> [Point]
 possibleLocations input lower upper = let
     inBounds = lower +=+ upper
     allCols = [lower..upper]
-    in concat $ map (possibleBeaconLocationsOnRow input inBounds) allCols
+    in concatMap (possibleBeaconLocationsOnRow input inBounds) allCols
 
 partB :: Input -> Int
 partB input = let 
